@@ -35012,10 +35012,10 @@ try {
 /***/ "./resources/js/rtc.js":
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__("./node_modules/kurento-utils/lib/index.js");
+var kurentoUtils = __webpack_require__("./node_modules/kurento-utils/lib/index.js");
 __webpack_require__("./node_modules/adapterjs/publish/adapter.min.js");
 
-var ws = new WebSocket('wss://' + location.host + '/one2many');
+var ws = new WebSocket('wss://' + location.host + ':3030');
 var video;
 var webRtcPeer;
 
@@ -35060,6 +35060,7 @@ ws.onmessage = function (message) {
 };
 
 function presenter() {
+    console.log(webRtcPeer);
     if (!webRtcPeer) {
         // showSpinner(video);
 
@@ -35069,7 +35070,7 @@ function presenter() {
         };
 
         webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options, function (error) {
-            if (error) return onError(error);
+            if (error) return console.log(error);
 
             this.generateOffer(_onOfferPresenter);
         });
@@ -35077,17 +35078,19 @@ function presenter() {
 }
 
 function _onOfferPresenter(error, offerSdp) {
-    if (error) return onError(error);
+    if (error) return console.log(error);
 
     var message = {
         id: 'presenter',
         sdpOffer: offerSdp
     };
-    sendMessage(message);
+    sendMessage(message, '_onOfferPresenter');
 }
 
 function viewer() {
+    console.log('herer');
     if (!webRtcPeer) {
+        console.log('here web peer not false');
         // showSpinner(video);
 
         var options = {
@@ -35096,7 +35099,7 @@ function viewer() {
         };
 
         webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options, function (error) {
-            if (error) return onError(error);
+            if (error) return console.log(error);
 
             this.generateOffer(_onOfferViewer);
         });
@@ -35104,13 +35107,13 @@ function viewer() {
 }
 
 function _onOfferViewer(error, offerSdp) {
-    if (error) return onError(error);
+    if (error) return console.log(error);
 
     var message = {
         id: 'viewer',
         sdpOffer: offerSdp
     };
-    sendMessage(message);
+    sendMessage(message, '_onOfferViewer');
 }
 
 function stop() {
@@ -35118,12 +35121,13 @@ function stop() {
         var message = {
             id: 'stop'
         };
-        sendMessage(message);
+        sendMessage(message, 'stop');
         dispose();
     }
 }
 
 function dispose() {
+    console.log('dispose');
     if (webRtcPeer) {
         webRtcPeer.dispose();
         webRtcPeer = null;
@@ -35138,11 +35142,12 @@ function _onIceCandidate(candidate) {
         id: 'onIceCandidate',
         candidate: candidate
     };
-    sendMessage(message);
+    sendMessage(message, '_onIceCandidate');
 }
 
-function sendMessage(message) {
+function sendMessage(message, origin) {
     var jsonMessage = JSON.stringify(message);
+    console.log('origin: ' + origin);
     console.log('Senging message: ' + jsonMessage);
     ws.send(jsonMessage);
 }

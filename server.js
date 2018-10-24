@@ -22,20 +22,21 @@ var ws = require('ws');
 var kurento = require('kurento-client');
 var fs    = require('fs');
 var https = require('https');
-// var app = require('express');
+var express = require('express');
 var argv = minimist(process.argv.slice(2), {
     default: {
-        as_uri: 'https://10.4.17.4:3000/',
-        ws_uri: 'ws://10.4.17.4:8888/kurento'
+        as_uri: 'https://webrtc.com:3000/',
+        ws_uri: 'wss://webrtc.com:8433/kurento'
     }
 });
 
 var options =
 {
-  key:  fs.readFileSync('resources/keys/server.key'),
-  cert: fs.readFileSync('resources/keys/server.crt')
+  key:  fs.readFileSync('resources/keys/webrtc.com.key'),
+  cert: fs.readFileSync('resources/keys/webrtc.com.cert')
 };
 
+// var app = express();
 
 /*
  * Definition of global variables.
@@ -52,17 +53,14 @@ var noPresenterMessage = 'No active presenter. Try again later...';
  */
 var asUrl = url.parse(argv.as_uri);
 var port = asUrl.port;
-// var server = https.createServer(options, app).listen(port, function() {
-//     console.log('Kurento Tutorial started');
-//     console.log('Open ' + url.format(asUrl) + ' with a WebRTC capable browser');
-// });
 
-// var wss = new ws.Server({
-//     server : server,
-//     path : '/one2many'
-// });
+var server = https.createServer(options).listen(3030);
 
-var wss = new ws('ws://10.4.17.4:8888/kurento');
+const wss = new ws.Server({ server });
+
+wss.on('error', function(err){
+    console.log('error',err);
+})
 
 function nextUniqueId() {
     idCounter++;
@@ -354,7 +352,7 @@ function stop(sessionId) {
 
     clearCandidatesQueue(sessionId);
 
-    if (viewers.length < 1 && !presenter) {
+    if (viewers.length < 1 && !presenter && kurentoClient !== null) {
         console.log('Closing kurento client');
         kurentoClient.close();
         kurentoClient = null;
