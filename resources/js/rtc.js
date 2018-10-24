@@ -20,7 +20,7 @@ window.onbeforeunload = function() {
 
 ws.onmessage = function(message) {
     var parsedMessage = JSON.parse(message.data);
-    // console.log('Received message: ' + message.data);
+    console.log('Received message: ' + message.data);
 
     switch (parsedMessage.id) {
         case 'presenterResponse':
@@ -36,7 +36,27 @@ ws.onmessage = function(message) {
             webRtcPeer.addIceCandidate(parsedMessage.candidate)
             break;
         default:
-            // console.log('Unrecognized message', parsedMessage);
+            console.log('Unrecognized message', parsedMessage);
+    }
+}
+
+function presenterResponse(message) {
+    if (message.response != 'accepted') {
+        var errorMsg = message.message ? message.message : 'Unknow error';
+        console.warn('Call not accepted for the following reason: ' + errorMsg);
+        dispose();
+    } else {
+        webRtcPeer.processAnswer(message.sdpAnswer);
+    }
+}
+
+function viewerResponse(message) {
+    if (message.response != 'accepted') {
+        var errorMsg = message.message ? message.message : 'Unknow error';
+        console.warn('Call not accepted for the following reason: ' + errorMsg);
+        dispose();
+    } else {
+        webRtcPeer.processAnswer(message.sdpAnswer);
     }
 }
 
@@ -51,7 +71,7 @@ function presenter() {
 
         webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options, function(error) {
             if(error) {
-                // return console.log('error', error);
+                return console.log('error', error);
             }
 
             this.generateOffer(_onOfferPresenter);
@@ -61,7 +81,7 @@ function presenter() {
 
 function _onOfferPresenter(error, offerSdp) {
     if (error) {
-        // return console.log('error', error);
+        return console.log('error', error);
     } 
 
     var message = {
@@ -72,9 +92,8 @@ function _onOfferPresenter(error, offerSdp) {
 }
 
 function viewer() {
-    // console.log('herer');
     if (!webRtcPeer) {
-        // console.log('here web peer not false');
+        console.log('here web peer not false');
         // showSpinner(video);
 
         var options = {
@@ -84,7 +103,7 @@ function viewer() {
 
         webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options, function(error) {
             if (error) {
-                // return console.log('error', error);
+                return console.log('error', error);
             } 
 
             this.generateOffer(_onOfferViewer);
@@ -94,7 +113,7 @@ function viewer() {
 
 function _onOfferViewer(error, offerSdp) {
     if (error) {
-        // return console.log('error', error);
+        return console.log('error', error);
     } 
 
     var message = {
@@ -115,7 +134,7 @@ function stop() {
 }
 
 function dispose() {
-    // console.log('dispose');
+    console.log('dispose');
     if (webRtcPeer) {
         webRtcPeer.dispose();
         webRtcPeer = null;
@@ -124,7 +143,7 @@ function dispose() {
 }
 
 function _onIceCandidate(candidate) {
-       // console.log('Local candidate' + JSON.stringify(candidate));
+       console.log('Local candidate' + JSON.stringify(candidate));
 
        var message = {
           id : 'onIceCandidate',
@@ -135,7 +154,7 @@ function _onIceCandidate(candidate) {
 
 function sendMessage(message, origin) {
     var jsonMessage = JSON.stringify(message);
-    // console.log('origin: ' + origin);
-    // console.log('Senging message: ' + jsonMessage);
+    console.log('origin: ' + origin);
+    console.log('Senging message: ' + jsonMessage);
     ws.send(jsonMessage);
 }
