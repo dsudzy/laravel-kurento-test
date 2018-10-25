@@ -123,6 +123,7 @@ config.vm.define :"webrtc"
   config.vm.provision "shell", path: "provisioning/redis/init.sh"
   # config.vm.provision "shell", path: "provisioning/compass.sh", privileged: false
   config.vm.provision "shell", path: "provisioning/node.sh"
+  config.vm.provision "shell", path: "provisioning/kurento.sh"
 
   # if File.file?("#{Dir.home}/.ssh/id_rsa")
   #   ssh_private_key = File.read("#{Dir.home}/.ssh/id_rsa")
