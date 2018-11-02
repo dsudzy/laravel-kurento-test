@@ -25,8 +25,8 @@ var https = require('https');
 var express = require('express');
 var argv = minimist(process.argv.slice(2), {
     default: {
-        as_uri: 'https://webrtc.com:3000/',
-        ws_uri: 'wss://webrtc.com:8433/kurento'
+        // as_uri: 'https://localhost.com:8443/',
+        ws_uri: 'wss://localhost.com:8433/kurento'
     }
 });
 
@@ -51,12 +51,16 @@ var noPresenterMessage = 'No active presenter. Try again later...';
 /*
  * Server startup
  */
-var asUrl = url.parse(argv.as_uri);
-var port = asUrl.port;
+// var asUrl = url.parse(argv.as_uri);
+// var port = asUrl.port;
 
-var server = https.createServer(options).listen(3030);
+var port = 3001;
+
+var server = https.createServer(options);
 
 const wss = new ws.Server({ server });
+
+// const wss = new ws.Server({ port });
 
 wss.on('error', function(err){
     console.log('error',err);
@@ -143,6 +147,8 @@ wss.on('connection', function(ws) {
     });
 });
 
+server.listen(port);
+
 /*
  * Definition of functions
  */
@@ -150,10 +156,12 @@ wss.on('connection', function(ws) {
 // Recover kurentoClient for the first time.
 function getKurentoClient(callback) {
     if (kurentoClient !== null) {
+        console.log('eee3e=============================================================');
         return callback(null, kurentoClient);
     }
 
     kurento(argv.ws_uri, function(error, _kurentoClient) {
+        console.log('eeee=============================================================');
         if (error) {
             console.log("Could not find media server at address " + argv.ws_uri);
             return callback("Could not find media server at address" + argv.ws_uri
@@ -167,7 +175,6 @@ function getKurentoClient(callback) {
 
 function startPresenter(sessionId, ws, sdpOffer, callback) {
     clearCandidatesQueue(sessionId);
-
     if (presenter !== null) {
         stop(sessionId);
         return callback("Another user is currently acting as presenter. Try again later ...");
@@ -178,29 +185,34 @@ function startPresenter(sessionId, ws, sdpOffer, callback) {
         pipeline : null,
         webRtcEndpoint : null
     }
-
+console.log('here========================================================');
     getKurentoClient(function(error, kurentoClient) {
+        console.log('2here====================================================================================================');
         if (error) {
+            console.log('error kurento client');
             stop(sessionId);
             return callback(error);
         }
 
         if (presenter === null) {
+            console.log('presenter == null');
             stop(sessionId);
             return callback(noPresenterMessage);
         }
-
+console.log('3here==============================================================================================================');
         kurentoClient.create('MediaPipeline', function(error, pipeline) {
             if (error) {
+                console.log('error create kurento pipeline');
                 stop(sessionId);
                 return callback(error);
             }
 
             if (presenter === null) {
+                console.log('presenter == null2');
                 stop(sessionId);
                 return callback(noPresenterMessage);
             }
-
+            console.log('successfully created kurento client');
             presenter.pipeline = pipeline;
             pipeline.create('WebRtcEndpoint', function(error, webRtcEndpoint) {
                 if (error) {

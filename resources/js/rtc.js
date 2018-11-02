@@ -1,8 +1,9 @@
 var kurentoUtils = require('kurento-utils');
 require('adapterjs');
 
+var port = 3001;
 
-var ws = new WebSocket('wss://' + location.host + ':3030');
+var ws = new WebSocket('wss://' + location.host + ':' + port);
 var video;
 var webRtcPeer;
 
@@ -136,6 +137,7 @@ function stop() {
 function dispose() {
     console.log('dispose');
     if (webRtcPeer) {
+        console.log('dispose');
         webRtcPeer.dispose();
         webRtcPeer = null;
     }
