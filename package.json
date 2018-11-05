@@ -24,11 +24,11 @@
         "adapterjs": "^0.15.3",
         "add": "^2.0.6",
         "dotenv": "^6.1.0",
+        "dotenv-webpack": "^1.5.7",
         "express": "^4.16.4",
         "kurento-client": "^6.8.0",
         "kurento-utils": "^6.8.0",
         "minimist": "^1.2.0",
-        "ws": "^6.1.0",
-        "yarn": "^1.10.1"
+        "ws": "^6.1.0"
     }
 }

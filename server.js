@@ -15,6 +15,9 @@
  *
  */
 require('dotenv').config();
+if (process.env.APP_ENV == 'local') {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
+}
 var path = require('path');
 var url = require('url');
 var minimist = require('minimist');
@@ -26,7 +29,7 @@ var express = require('express');
 var argv = minimist(process.argv.slice(2), {
     default: {
         // as_uri: 'https://localhost.com:8443/',
-        ws_uri: 'wss://localhost.com:8433/kurento'
+        ws_uri: process.env.KURENTO_WEB_SOCKET_URL //'wss://webrtc.com:8433/kurento'
     }
 });
 
@@ -54,7 +57,7 @@ var noPresenterMessage = 'No active presenter. Try again later...';
 // var asUrl = url.parse(argv.as_uri);
 // var port = asUrl.port;
 
-var port = 3001;
+var port = process.env.NODE_PORT;
 
 var server = https.createServer(options);
 
@@ -156,12 +159,9 @@ server.listen(port);
 // Recover kurentoClient for the first time.
 function getKurentoClient(callback) {
     if (kurentoClient !== null) {
-        console.log('eee3e=============================================================');
         return callback(null, kurentoClient);
     }
-
     kurento(argv.ws_uri, function(error, _kurentoClient) {
-        console.log('eeee=============================================================');
         if (error) {
             console.log("Could not find media server at address " + argv.ws_uri);
             return callback("Could not find media server at address" + argv.ws_uri
@@ -185,9 +185,7 @@ function startPresenter(sessionId, ws, sdpOffer, callback) {
         pipeline : null,
         webRtcEndpoint : null
     }
-console.log('here========================================================');
     getKurentoClient(function(error, kurentoClient) {
-        console.log('2here====================================================================================================');
         if (error) {
             console.log('error kurento client');
             stop(sessionId);
@@ -199,7 +197,6 @@ console.log('here========================================================');
             stop(sessionId);
             return callback(noPresenterMessage);
         }
-console.log('3here==============================================================================================================');
         kurentoClient.create('MediaPipeline', function(error, pipeline) {
             if (error) {
                 console.log('error create kurento pipeline');

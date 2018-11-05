@@ -1,4 +1,5 @@
 let mix = require('laravel-mix');
+const Dotenv = require('dotenv-webpack');
 
 /*
  |--------------------------------------------------------------------------
@@ -49,7 +50,10 @@ if (!mix.inProduction()) {
                     options: mix.config.babel()
                 }]
             }]
-        }
+        },
+        plugins: [
+            new Dotenv()
+        ]
     });
 
 } else {
@@ -73,7 +77,10 @@ if (!mix.inProduction()) {
                     options: mix.config.babel()
                 }]
             }]
-        }
+        },
+        plugins: [
+            new Dotenv()
+        ]
     });
 }
 
