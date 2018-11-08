@@ -58,6 +58,8 @@ var port = process.env.NODE_PORT;
 var server = https.createServer(options);
 const wss = new ws.Server({ server });
 
+console.log('server.js');
+
 wss.on('error', function(err){
     console.log('error',err);
 })
