@@ -24,7 +24,7 @@ var minimist = require('minimist');
 var ws = require('ws');
 var kurento = require('kurento-client');
 var fs    = require('fs');
-var https = require('https');
+var https = require('http'); //require('https');
 var express = require('express');
 var argv = minimist(process.argv.slice(2), {
     default: {
@@ -55,7 +55,10 @@ var noPresenterMessage = 'No active presenter. Try again later...';
  * Server startup
  */
 var port = process.env.NODE_PORT;
-var server = https.createServer(options);
+// var server = https.createServer(options);
+var server = https.createServer((req, res) => {
+
+});
 const wss = new ws.Server({ server });
 
 console.log('server.js');
