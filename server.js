@@ -35,8 +35,8 @@ var argv = minimist(process.argv.slice(2), {
 
 var options =
 {
-  key:  fs.readFileSync('resources/keys/webrtc.com.key'),
-  cert: fs.readFileSync('resources/keys/webrtc.com.cert')
+  key:  fs.readFileSync(process.env.SSL_CERT_KEY),
+  cert: fs.readFileSync(process.env.SSL_CERT_CRT)
 };
 
 // var app = express();
@@ -54,16 +54,9 @@ var noPresenterMessage = 'No active presenter. Try again later...';
 /*
  * Server startup
  */
-// var asUrl = url.parse(argv.as_uri);
-// var port = asUrl.port;
-
 var port = process.env.NODE_PORT;
-
 var server = https.createServer(options);
-
 const wss = new ws.Server({ server });
-
-// const wss = new ws.Server({ port });
 
 wss.on('error', function(err){
     console.log('error',err);
