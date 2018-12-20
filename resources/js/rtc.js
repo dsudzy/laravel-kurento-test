@@ -2,7 +2,7 @@ var kurentoUtils = require('kurento-utils');
 require('adapterjs');
 
 var ws_url = process.env.WEB_SOCKET_URL + ':' + process.env.NODE_PORT;
-
+console.log('ws url ==', ws_url);
 var ws = new WebSocket(ws_url);
 var video;
 var webRtcPeer;
