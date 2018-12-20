@@ -18,6 +18,7 @@ require('dotenv').config();
 if (process.env.APP_ENV == 'local') {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 }
+console.log(process.env['NODE_TLS_REJECT_UNAUTHORIZED']);
 var path = require('path');
 var url = require('url');
 var minimist = require('minimist');
