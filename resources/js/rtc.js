@@ -7,8 +7,9 @@ var ws_url = process.env.WEB_SOCKET_URL + ':' + process.env.NODE_PORT;
 console.log(ws_url);
 // var ws = new WebSocket(ws_url);
 const socket = io(ws_url, {
-    transports: [ 'websocket' ],
-    forceNew: true
+    transports: ['websocket'],
+    forceNew: true,
+    rejectUnauthorized: false
 });
 
 var video;
