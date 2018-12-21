@@ -23,6 +23,14 @@ window.onbeforeunload = function() {
     ws.close();
 }
 
+ws.onerror = function(e) {
+    console.log(e);
+}
+
+ws.onclose = function(e) {
+    console.log(e);
+}
+
 ws.onmessage = function(message) {
     var parsedMessage = JSON.parse(message.data);
     console.log('Received message: ' + message.data);

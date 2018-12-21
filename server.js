@@ -65,6 +65,10 @@ wss.on('error', function(err){
     console.log('error',err);
 })
 
+wss.on('close', function(err){
+    console.log('close',err);
+})
+
 function nextUniqueId() {
     idCounter++;
     return idCounter.toString();
