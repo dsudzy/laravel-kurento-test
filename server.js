@@ -54,18 +54,18 @@ var noPresenterMessage = 'No active presenter. Try again later...';
 /*
  * Server startup
  */
-var port = process.env.NODE_PORT;
+var port = process.env.NODE_PORT || 3000;
 var server = https.createServer(options);
-const wss = require('socket.io')(server);
+var io = require('socket.io')(server);
 // const wss = new ws.Server({ server });
 
 console.log('server.js');
 
-wss.on('error', function(err){
+io.on('error', function(err){
     console.log('error',err);
 })
 
-wss.on('close', function(err){
+io.on('close', function(err){
     console.log('close',err);
 })
 
@@ -77,36 +77,36 @@ function nextUniqueId() {
 /*
  * Management of WebSocket messages
  */
-wss.on('connection', function(ws) {
+io.on('connection', function(socket) {
 
     var sessionId = nextUniqueId();
     console.log('Connection received with sessionId ' + sessionId);
 
-    ws.on('error', function(error) {
+    socket.on('error', function(error) {
         console.log('Connection ' + sessionId + ' error');
         stop(sessionId);
     });
 
-    ws.on('close', function() {
+    socket.on('close', function() {
         console.log('Connection ' + sessionId + ' closed');
         stop(sessionId);
     });
 
-    ws.on('message', function(_message) {
+    socket.on('message', function(_message) {
         var message = JSON.parse(_message);
         console.log('Connection ' + sessionId + ' received message ', message);
 
         switch (message.id) {
         case 'presenter':
-            startPresenter(sessionId, ws, message.sdpOffer, function(error, sdpAnswer) {
+            startPresenter(sessionId, socket, message.sdpOffer, function(error, sdpAnswer) {
                 if (error) {
-                    return ws.send(JSON.stringify({
+                    return socket.send(JSON.stringify({
                         id : 'presenterResponse',
                         response : 'rejected',
                         message : error
                     }));
                 }
-                ws.send(JSON.stringify({
+                socket.send(JSON.stringify({
                     id : 'presenterResponse',
                     response : 'accepted',
                     sdpAnswer : sdpAnswer
@@ -115,16 +115,16 @@ wss.on('connection', function(ws) {
             break;
 
         case 'viewer':
-            startViewer(sessionId, ws, message.sdpOffer, function(error, sdpAnswer) {
+            startViewer(sessionId, socket, message.sdpOffer, function(error, sdpAnswer) {
                 if (error) {
-                    return ws.send(JSON.stringify({
+                    return socket.send(JSON.stringify({
                         id : 'viewerResponse',
                         response : 'rejected',
                         message : error
                     }));
                 }
 
-                ws.send(JSON.stringify({
+                socket.send(JSON.stringify({
                     id : 'viewerResponse',
                     response : 'accepted',
                     sdpAnswer : sdpAnswer
@@ -141,7 +141,7 @@ wss.on('connection', function(ws) {
             break;
 
         default:
-            ws.send(JSON.stringify({
+            socket.send(JSON.stringify({
                 id : 'error',
                 message : 'Invalid message ' + message
             }));
@@ -173,7 +173,7 @@ function getKurentoClient(callback) {
     });
 }
 
-function startPresenter(sessionId, ws, sdpOffer, callback) {
+function startPresenter(sessionId, socket, sdpOffer, callback) {
     clearCandidatesQueue(sessionId);
     if (presenter !== null) {
         stop(sessionId);
@@ -233,7 +233,7 @@ function startPresenter(sessionId, ws, sdpOffer, callback) {
 
                 webRtcEndpoint.on('OnIceCandidate', function(event) {
                     var candidate = kurento.getComplexType('IceCandidate')(event.candidate);
-                    ws.send(JSON.stringify({
+                    socket.send(JSON.stringify({
                         id : 'iceCandidate',
                         candidate : candidate
                     }));
@@ -264,7 +264,7 @@ function startPresenter(sessionId, ws, sdpOffer, callback) {
     });
 }
 
-function startViewer(sessionId, ws, sdpOffer, callback) {
+function startViewer(sessionId, socket, sdpOffer, callback) {
     clearCandidatesQueue(sessionId);
 
     if (presenter === null) {
@@ -279,7 +279,7 @@ function startViewer(sessionId, ws, sdpOffer, callback) {
         }
         viewers[sessionId] = {
             "webRtcEndpoint" : webRtcEndpoint,
-            "ws" : ws
+            "ws" : socket
         }
 
         if (presenter === null) {
@@ -296,7 +296,7 @@ function startViewer(sessionId, ws, sdpOffer, callback) {
 
         webRtcEndpoint.on('OnIceCandidate', function(event) {
             var candidate = kurento.getComplexType('IceCandidate')(event.candidate);
-            ws.send(JSON.stringify({
+            socket.send(JSON.stringify({
                 id : 'iceCandidate',
                 candidate : candidate
             }));
@@ -345,7 +345,7 @@ function stop(sessionId) {
         for (var i in viewers) {
             var viewer = viewers[i];
             if (viewer.ws) {
-                viewer.ws.send(JSON.stringify({
+                viewer.socket.send(JSON.stringify({
                     id : 'stopCommunication'
                 }));
             }
