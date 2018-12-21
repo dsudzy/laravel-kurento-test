@@ -18,22 +18,22 @@ require('dotenv').config();
 if (process.env.APP_ENV == 'local') {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 }
-var path = require('path');
-var url = require('url');
-var minimist = require('minimist');
-var ws = require('ws');
-var kurento = require('kurento-client');
-var fs    = require('fs');
-var https = require('https');
-var express = require('express');
-var argv = minimist(process.argv.slice(2), {
+// const ws = require('ws');
+const path = require('path');
+const url = require('url');
+const minimist = require('minimist');
+const kurento = require('kurento-client');
+const fs = require('fs');
+const https = require('https');
+const express = require('express');
+const argv = minimist(process.argv.slice(2), {
     default: {
         // as_uri: 'https://localhost.com:8443/',
         ws_uri: process.env.KURENTO_WEB_SOCKET_URL //'wss://webrtc.com:8433/kurento'
     }
 });
 
-var options =
+const options =
 {
   key:  fs.readFileSync(process.env.SSL_CERT_KEY),
   cert: fs.readFileSync(process.env.SSL_CERT_CRT)
@@ -56,7 +56,8 @@ var noPresenterMessage = 'No active presenter. Try again later...';
  */
 var port = process.env.NODE_PORT;
 var server = https.createServer(options);
-const wss = new ws.Server({ server });
+const wss = require('socket.io')(server);
+// const wss = new ws.Server({ server });
 
 console.log('server.js');
 

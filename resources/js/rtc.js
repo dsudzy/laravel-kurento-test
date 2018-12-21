@@ -1,9 +1,13 @@
+import io from 'socket.io-client';
+
 var kurentoUtils = require('kurento-utils');
 require('adapterjs');
 
 var ws_url = process.env.WEB_SOCKET_URL + ':' + process.env.NODE_PORT;
 
-var ws = new WebSocket(ws_url);
+// var ws = new WebSocket(ws_url);
+const ws = io(ws_url);
+
 var video;
 var webRtcPeer;
 
