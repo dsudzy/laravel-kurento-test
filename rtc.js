@@ -4,8 +4,7 @@ var kurentoUtils = require('kurento-utils');
 require('adapterjs');
 
 var ws_url = process.env.WEB_SOCKET_URL + ':' + process.env.NODE_PORT;
-console.log(ws_url);
-// var ws = new WebSocket(ws_url);
+
 const socket = io(ws_url, {
     transports: ['websocket'],
     forceNew: true,
@@ -161,6 +160,7 @@ function dispose() {
 }
 
 function _onIceCandidate(candidate) {
+        console.log('on ice =========');
        console.log('Local candidate' + JSON.stringify(candidate));
 
        var message = {
@@ -174,5 +174,5 @@ function sendMessage(message, origin) {
     var jsonMessage = JSON.stringify(message);
     console.log('origin: ' + origin);
     console.log('Senging message: ' + jsonMessage);
-    socket.emit(jsonMessage);
+    socket.emit('message', jsonMessage);
 }

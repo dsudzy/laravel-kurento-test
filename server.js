@@ -15,8 +15,7 @@ const argv = minimist(process.argv.slice(2), {
         ws_uri: process.env.KURENTO_WEB_SOCKET_URL //'wss://webrtc.com:8433/kurento'
     }
 });
-
-console.log(process.env.SSL_CERT_KEY, process.env.SSL_CERT_CRT);
+// I had this issue with LetsEncrypt as well. I cat'd the fullcert.pem and privkey.pem together and copied them into the kurento config directory. It worked after that.
 /*const options =
 {
   key:  fs.readFileSync(process.env.SSL_CERT_KEY),
@@ -68,8 +67,8 @@ function nextUniqueId() {
  */
 io.on('connection', (socket) => {
 
-    // var sessionId = nextUniqueId();
-    var sessionId = 1;
+    var sessionId = nextUniqueId();
+    // var sessionId = 1;
     console.log('Connection received with sessionId ' + sessionId);
 
     socket.on('error', function(error) {
@@ -166,7 +165,6 @@ function startPresenter(sessionId, socket, sdpOffer, callback) {
     clearCandidatesQueue(sessionId);
     console.log('candidates queue cleared');
     if (presenter !== null) {
-        console.log('presenter = ' + presenter);
         stop(sessionId);
         return callback("Another user is currently acting as presenter. Try again later ...");
     }
@@ -191,6 +189,7 @@ function startPresenter(sessionId, socket, sdpOffer, callback) {
             return callback(noPresenterMessage);
         }
         kurentoClient.create('MediaPipeline', function(error, pipeline) {
+            console.log('successfully created kurento pipeline');
             if (error) {
                 console.log('error create kurento pipeline');
                 stop(sessionId);
@@ -202,10 +201,10 @@ function startPresenter(sessionId, socket, sdpOffer, callback) {
                 stop(sessionId);
                 return callback(noPresenterMessage);
             }
-            console.log('successfully created kurento client');
+            
             presenter.pipeline = pipeline;
-            console.log('presenter pipeline', presenter.pipeline);
             pipeline.create('WebRtcEndpoint', function(error, webRtcEndpoint) {
+                console.log('pipeline created');
                 if (error) {
                     stop(sessionId);
                     return callback(error);
