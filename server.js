@@ -1,24 +1,7 @@
-/*
- * (C) Copyright 2014-2015 Kurento (http://kurento.org/)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
 require('dotenv').config();
 if (process.env.APP_ENV == 'local') {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 }
-// const ws = require('ws');
 const path = require('path');
 const url = require('url');
 const minimist = require('minimist');
@@ -33,10 +16,17 @@ const argv = minimist(process.argv.slice(2), {
     }
 });
 
-const options =
+console.log(process.env.SSL_CERT_KEY, process.env.SSL_CERT_CRT);
+/*const options =
 {
   key:  fs.readFileSync(process.env.SSL_CERT_KEY),
   cert: fs.readFileSync(process.env.SSL_CERT_CRT)
+};*/
+
+const options =
+{
+  key:  fs.readFileSync('resources/keys/privkey.pem', 'utf8'),
+  cert: fs.readFileSync('resources/keys/cert.pem', 'utf8')
 };
 
 // var app = express();
@@ -57,7 +47,6 @@ var noPresenterMessage = 'No active presenter. Try again later...';
 var port = process.env.NODE_PORT || 3000;
 var server = https.createServer(options);
 var io = require('socket.io')(server);
-// const wss = new ws.Server({ server });
 
 console.log('server.js');
 
@@ -77,9 +66,10 @@ function nextUniqueId() {
 /*
  * Management of WebSocket messages
  */
-io.on('connection', function(socket) {
+io.on('connection', (socket) => {
 
-    var sessionId = nextUniqueId();
+    // var sessionId = nextUniqueId();
+    var sessionId = 1;
     console.log('Connection received with sessionId ' + sessionId);
 
     socket.on('error', function(error) {
@@ -94,8 +84,7 @@ io.on('connection', function(socket) {
 
     socket.on('message', function(_message) {
         var message = JSON.parse(_message);
-        console.log('Connection ' + sessionId + ' received message ', message);
-
+        // console.log('Connection ' + sessionId + ' received message ', message);
         switch (message.id) {
         case 'presenter':
             startPresenter(sessionId, socket, message.sdpOffer, function(error, sdpAnswer) {
@@ -175,7 +164,9 @@ function getKurentoClient(callback) {
 
 function startPresenter(sessionId, socket, sdpOffer, callback) {
     clearCandidatesQueue(sessionId);
+    console.log('candidates queue cleared');
     if (presenter !== null) {
+        console.log('presenter = ' + presenter);
         stop(sessionId);
         return callback("Another user is currently acting as presenter. Try again later ...");
     }
@@ -185,7 +176,9 @@ function startPresenter(sessionId, socket, sdpOffer, callback) {
         pipeline : null,
         webRtcEndpoint : null
     }
+    console.log('getting kurento client');
     getKurentoClient(function(error, kurentoClient) {
+        console.log('get kurento client');
         if (error) {
             console.log('error kurento client');
             stop(sessionId);
@@ -205,12 +198,13 @@ function startPresenter(sessionId, socket, sdpOffer, callback) {
             }
 
             if (presenter === null) {
-                console.log('presenter == null2');
+                console.log('presenter == null');
                 stop(sessionId);
                 return callback(noPresenterMessage);
             }
             console.log('successfully created kurento client');
             presenter.pipeline = pipeline;
+            console.log('presenter pipeline', presenter.pipeline);
             pipeline.create('WebRtcEndpoint', function(error, webRtcEndpoint) {
                 if (error) {
                     stop(sessionId);

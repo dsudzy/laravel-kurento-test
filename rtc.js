@@ -5,13 +5,12 @@ require('adapterjs');
 
 var ws_url = process.env.WEB_SOCKET_URL + ':' + process.env.NODE_PORT;
 console.log(ws_url);
-const socket = io(ws_url, 
-    {
-        transports: ['websocket'],
-        forceNew: true,
-        rejectUnauthorized: false
-    }
-);
+// var ws = new WebSocket(ws_url);
+const socket = io(ws_url, {
+    transports: ['websocket'],
+    forceNew: true,
+    rejectUnauthorized: false
+});
 
 var video;
 var webRtcPeer;
@@ -35,6 +34,7 @@ socket.onerror = function(e) {
 socket.onclose = function(e) {
     console.log(e);
 }
+
 socket.onmessage = function(message) {
     var parsedMessage = JSON.parse(message.data);
     console.log('Received message: ' + message.data);
@@ -79,6 +79,8 @@ function viewerResponse(message) {
 
 function presenter() {
     if (!webRtcPeer) {
+        // showSpinner(video);
+
         var options = {
             localVideo: video,
             onicecandidate : _onIceCandidate
@@ -172,5 +174,5 @@ function sendMessage(message, origin) {
     var jsonMessage = JSON.stringify(message);
     console.log('origin: ' + origin);
     console.log('Senging message: ' + jsonMessage);
-    socket.emit('message', jsonMessage);
+    socket.emit(jsonMessage);
 }
